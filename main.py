@@ -1,6 +1,6 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score
 
 import torch
 import torch.nn as nn
@@ -15,11 +15,13 @@ class Net(nn.Module):
         self.fc1 = nn.Linear(4, 100)
         self.fc2 = nn.Linear(100, 100)
         self.fc3 = nn.Linear(100, 3)
+        self.softmax = nn.Softmax(dim=1)
 
     def forward(self, X):
         X = F.relu(self.fc1(X))
         X = self.fc2(X)
         X = self.fc3(X)
+        X = self.softmax(X)
 
         return X
     
@@ -55,10 +57,15 @@ for epoch in range(1000):
     loss.backward()
     optimizer.step()
     
-    if epoch % 10 == 0:
-        print epoch, loss.data[0]
+    if epoch % 100 == 0:
+        print 'number of epoch', epoch, 'loss', loss.data[0]
 
 predict_out = net(test_X)
 _, predict_y = torch.max(predict_out, 1)
 
-print accuracy_score(test_y.data, predict_y.data)
+print 'prediction accuracy', accuracy_score(test_y.data, predict_y.data)
+
+print 'macro precision', precision_score(test_y.data, predict_y.data, average='macro')
+print 'micro precision', precision_score(test_y.data, predict_y.data, average='micro')
+print 'macro recall', recall_score(test_y.data, predict_y.data, average='macro')
+print 'micro recall', recall_score(test_y.data, predict_y.data, average='micro')
